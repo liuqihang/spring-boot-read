@@ -1,0 +1,36 @@
+plugins {
+    id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(8)
+	}
+}
+
+dependencies {
+	// ★ 核心：直接依赖源码模块
+	implementation project(':spring-boot')
+	implementation project(':spring-boot-autoconfigure')
+
+	// Web 场景（Tomcat + MVC）
+	implementation project(':starter:spring-boot-starter-web')
+
+	// 基础 Spring
+	implementation 'org.springframework:spring-context'
+	implementation 'org.springframework:spring-web'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+test {
+    useJUnitPlatform()
+}
