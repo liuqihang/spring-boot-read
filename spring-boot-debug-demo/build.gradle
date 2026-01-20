@@ -17,11 +17,11 @@ java {
 
 dependencies {
 	// ★ 核心：直接依赖源码模块
-	implementation project(':spring-boot')
-	implementation project(':spring-boot-autoconfigure')
+	implementation project(':spring-boot-project:spring-boot')
+	implementation project(':spring-boot-project:spring-boot-autoconfigure')
 
 	// Web 场景（Tomcat + MVC）
-	implementation project(':starter:spring-boot-starter-web')
+	implementation project(':spring-boot-project:spring-boot-starter-web')
 
 	// 基础 Spring
 	implementation 'org.springframework:spring-context'
