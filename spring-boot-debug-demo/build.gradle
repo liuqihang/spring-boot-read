@@ -1,12 +1,12 @@
 plugins {
-    id 'java'
+	id 'java'
 }
 
 group 'org.example'
 version '1.0-SNAPSHOT'
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 }
 
 java {
@@ -16,21 +16,24 @@ java {
 }
 
 dependencies {
-	// ★ 核心：直接依赖源码模块
-	implementation project(':spring-boot-project:spring-boot')
-	implementation project(':spring-boot-project:spring-boot-autoconfigure')
 
-	// Web 场景（Tomcat + MVC）
-	implementation project(':spring-boot-project:spring-boot-starter-web')
+	// ① Spring Boot BOM（必须第一行）
+	implementation platform(project(":spring-boot-project:spring-boot-dependencies"))
 
-	// 基础 Spring
-	implementation 'org.springframework:spring-context'
-	implementation 'org.springframework:spring-web'
+	// Spring Boot 核心模块
+	implementation project(":spring-boot-project:spring-boot")
+//	implementation project(":spring-boot-project:spring-boot-autoconfigure")
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+	// ② Web Starter（唯一需要的 starter）
+	implementation project(":spring-boot-project:spring-boot-starters:spring-boot-starter-web")
+
+	// ③ Servlet API（编译期即可）
+	compileOnly "javax.servlet:javax.servlet-api:4.0.1"
+
+	// ❌ 不要自己指定 junit 版本（Boot 已经管理）
+//	testImplementation project(":spring-boot-project:spring-boot-starter-test")
 }
 
 test {
-    useJUnitPlatform()
+	useJUnitPlatform()
 }
