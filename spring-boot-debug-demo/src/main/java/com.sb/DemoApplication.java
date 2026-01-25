@@ -30,7 +30,7 @@ public class DemoApplication {
 
 	@RestController
 	static class HelloController {
-		@GetMapping("/")
+		@GetMapping("/myTest")
 		public String hello() {
 			return "Hello Spring Boot Source Demo!";
 		}

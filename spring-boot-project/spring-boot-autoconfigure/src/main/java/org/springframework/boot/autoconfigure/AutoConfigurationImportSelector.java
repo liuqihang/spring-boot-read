@@ -127,7 +127,7 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 		Set<String> exclusions = getExclusions(annotationMetadata, attributes);
 		checkExcludedClasses(configurations, exclusions);
 		configurations.removeAll(exclusions);
-		configurations = getConfigurationClassFilter().filter(configurations);
+		configurations = getConfigurationClassFilter().filter(configurations);//筛选完成
 		fireAutoConfigurationImportEvents(configurations, exclusions);
 		return new AutoConfigurationEntry(configurations, exclusions);
 	}
@@ -373,7 +373,7 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 			long startTime = System.nanoTime();
 			String[] candidates = StringUtils.toStringArray(configurations);
 			boolean skipped = false;
-			for (AutoConfigurationImportFilter filter : this.filters) {
+			for (AutoConfigurationImportFilter filter : this.filters) {//filters来源于spring.factories, key=AutoConfigurationImportFilter
 				boolean[] match = filter.match(candidates, this.autoConfigurationMetadata);
 				for (int i = 0; i < match.length; i++) {
 					if (!match[i]) {

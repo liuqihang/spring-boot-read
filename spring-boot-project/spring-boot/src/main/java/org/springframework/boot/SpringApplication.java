@@ -258,14 +258,22 @@ public class SpringApplication {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySources) {
+		//传Null,后面会默认使用DefaultResourceLoader, 主要用于后续加载配置文件、bean定义等资源
 		this.resourceLoader = resourceLoader;
 		Assert.notNull(primarySources, "PrimarySources must not be null");
+		//转换为有序去重的数据结构
 		this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
+		//推断Application的类型(None 非Web应用:如批处理应用、Servlet Web应用:Tomcat Jetty、Reactive 响应式Web应用：Netty+WebFlux)
+		//如何判断呢？从classpath加载:Class.forName
 		this.webApplicationType = WebApplicationType.deduceFromClasspath();
+		//加载所有BootstrapRegistryInitializer的实现
 		this.bootstrapRegistryInitializers = new ArrayList<>(
 				getSpringFactoriesInstances(BootstrapRegistryInitializer.class));
+		//加载所有ApplicationContextInitializer的实现并设置到当前SpringApplicatin.initializers属性中
 		setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
+		//加载所有ApplicationListener的实现,并注册到listeners
 		setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
+		//推断出包含main方法的主类,即推断出启动类
 		this.mainApplicationClass = deduceMainApplicationClass();
 	}
 
@@ -292,18 +300,30 @@ public class SpringApplication {
 	 */
 	public ConfigurableApplicationContext run(String... args) {
 		long startTime = System.nanoTime();
+		//实际返回new DefaultBootstrapContext()
 		DefaultBootstrapContext bootstrapContext = createBootstrapContext();
 		ConfigurableApplicationContext context = null;
+
+		//设置java.awt.headless系统属性
 		configureHeadlessProperty();
+
+		//监听启动过程中的关键事件(如启动开始、启动完成等)
 		SpringApplicationRunListeners listeners = getRunListeners(args);
-		listeners.starting(bootstrapContext, this.mainApplicationClass);
+		listeners.starting(bootstrapContext, this.mainApplicationClass);// ？？？
 		try {
+			//将命令行参数封装为 ApplicationArguments 对象
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
-			ConfigurableEnvironment environment = prepareEnvironment(listeners, bootstrapContext, applicationArguments);
-			configureIgnoreBeanInfo(environment);
+			ConfigurableEnvironment environment = prepareEnvironment(listeners, bootstrapContext, applicationArguments);//准备环境，决定加载哪些配置
+			configureIgnoreBeanInfo(environment);//???
 			Banner printedBanner = printBanner(environment);
+
+			//从META-INF/spring.factories中找ApplicationContextFactory(spring-boot/resources/META-INF)的value, 然后根据webApplicationType来筛选 (AnnotationConfigServletWebServerApplicationContext)
 			context = createApplicationContext();
+
+			//设置应用启动跟踪，记录启动过程各个阶段的耗时，用于性能分析
 			context.setApplicationStartup(this.applicationStartup);
+
+
 			prepareContext(bootstrapContext, context, environment, listeners, applicationArguments, printedBanner);
 			refreshContext(context);
 			afterRefresh(context, applicationArguments);
@@ -371,7 +391,7 @@ public class SpringApplication {
 			ApplicationArguments applicationArguments, Banner printedBanner) {
 		context.setEnvironment(environment);
 		postProcessApplicationContext(context);
-		applyInitializers(context);
+		applyInitializers(context);//调用各种initialize，在IOC真正启动之前，允许框架对容器形态做一次不可逆的定制
 		listeners.contextPrepared(context);
 		bootstrapContext.close(context);
 		if (this.logStartupInfo) {
@@ -398,13 +418,13 @@ public class SpringApplication {
 		// Load the sources
 		Set<Object> sources = getAllSources();
 		Assert.notEmpty(sources, "Sources must not be empty");
-		load(context, sources.toArray(new Object[0]));
+		load(context, sources.toArray(new Object[0]));//将主类解析注册到BeanDefinition
 		listeners.contextLoaded(context);
 	}
 
 	private void refreshContext(ConfigurableApplicationContext context) {
 		if (this.registerShutdownHook) {
-			shutdownHook.registerApplicationContext(context);
+			shutdownHook.registerApplicationContext(context);//关闭容器时做一些收尾工作，比如：@PreDestroy执行、调用ApplicationContext.close()
 		}
 		refresh(context);
 	}
@@ -413,7 +433,7 @@ public class SpringApplication {
 		System.setProperty(SYSTEM_PROPERTY_JAVA_AWT_HEADLESS,
 				System.getProperty(SYSTEM_PROPERTY_JAVA_AWT_HEADLESS, Boolean.toString(this.headless)));
 	}
-
+	//初始化SpringApplicationRunListeners,内部持有的listeners = org.springframework.boot.context.event.EventPublishingRunListener
 	private SpringApplicationRunListeners getRunListeners(String[] args) {
 		Class<?>[] types = new Class<?>[] { SpringApplication.class, String[].class };
 		return new SpringApplicationRunListeners(logger,
